@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geolocation</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+    </style>
+	<script type="text/javascript" src="https://www.live2support.com/l2s2016/assets/js/jquery.js"></script>
+  </head>
+<body>
+<br />
+<button type="button" name="source" id="source">Start your journey</button>
+<input type="hidden" id="source_placeholder_lat_lon" value="">
+<div id="source_placeholder"></div><br /><br /><br />
+
+<button type="button" name="destination" id="destination">End your journey</button>
+<input type="hidden" id="destination_placeholder_lat_lon" value="">
+<div id="destination_placeholder"></div><br /><br /><br />
+
+<button type="button" name="calculate" id="calculate">Calculate Distance</button>
+<div id="calculate_placeholder"></div>
+
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#source").click(function(){
+			initMap("source_placeholder");
+			
+		});
+	});
+	
+	$(document).ready(function(){
+		$("#destination").click(function(){
+			initMap("destination_placeholder");
+		});
+	});
+	
+	$(document).ready(function(){
+		$("#calculate").click(function(){
+			calculate_distance();
+		});
+	});
+	
+	function initMap(placeholder){
+		// Start: Get current location (both Latitude and Longitude)
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(function(position) {
+				var latlng = {
+					lat: position.coords.latitude,
+					lng: position.coords.longitude
+				};
+
+				//alert('Location found. ' + "Latiude = " + latlng.lat + "Longitude = " + latlng.lng);
+				var geocoder = new google.maps.Geocoder;
+				geocodeLatLng(geocoder, latlng, placeholder);
+			}, 
+			function() {
+			  handleLocationError("Unable to get current location");
+			});
+		}
+		else {
+		handleLocationError("Your web browser doesn't supported HTML5 Geolocation");
+		}
+		
+		function handleLocationError(error){
+			alert(error);
+		}
+		// End
+		
+		function geocodeLatLng(geocoder, latlng, placeholder){
+			geocoder.geocode({'location': latlng}, function(results, status){
+				if (status === google.maps.GeocoderStatus.OK) {
+					if (results[1]){
+						//console.log(results[1]);
+						//alert("Current Location:" + results[1].formatted_address + " " + "Place ID: " + results[1].place_id);
+						var location = results[1].formatted_address;
+						$("#" + placeholder).html(location);
+						$("#" + placeholder + "_lat_lon").val(latlng.lat + "," + latlng.lng);
+					}
+				}
+			});
+		}
+	}
+	
+	function calculate_distance(){
+		var source = $("#source_placeholder_lat_lon").val();
+		var destination = $("#destination_placeholder_lat_lon").val();
+		
+		//var source = new google.maps.LatLng(source_val);
+		//var destination = new google.maps.LatLng(destination_val);
+		
+		var service = new google.maps.DistanceMatrixService();
+		service.getDistanceMatrix(
+		{
+			origins: [source],
+			destinations: [destination],
+			travelMode: google.maps.TravelMode.DRIVING,
+			/*
+			transitOptions: google.maps.TravelMode.DRIVING,
+			drivingOptions: DrivingOptions,
+			*/
+			unitSystem: google.maps.UnitSystem.METRIC,
+			/*
+			avoidHighways: Boolean,
+			avoidTolls: Boolean,
+			*/
+		}, callback);
+	}
+	
+	function callback(response, status){
+	
+		if(status == "OK"){
+			//console.log(response.rows[0].elements[0].status);
+			//console.log(response.rows[0].elements[0].distance.value);
+			//console.log(response.rows[0].elements[0].distance.text);
+			//console.log(response.rows[0]);
+			if(response.rows[0].elements[0].status == "OK"){
+				$("#calculate_placeholder").html("Status: " + response.rows[0].elements[0].status + "<br />Distance: " + response.rows[0].elements[0].distance.value + " | Text: " + response.rows[0].elements[0].distance.text + "<br />Duration: " + response.rows[0].elements[0].duration.value + " | Text: " + response.rows[0].elements[0].duration.text);
+			}
+			else{
+				$("#calculate_placeholder").html(response.rows[0].elements[0].status);
+			}
+		}
+	}
+</script>
+  
+  
+  
+  
+  
+  
+  <!--
+    <div id="map"></div>
+    <script>
+
+
+function initMap() {
+  var map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: -34.397, lng: 150.644},
+    zoom: 16
+  });
+  var infoWindow = new google.maps.InfoWindow({map: map});
+
+  // Try HTML5 geolocation.
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var pos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+
+      infoWindow.setPosition(pos);
+      infoWindow.setContent('Location found. ' + "Latiude = " + pos.lat + "Longitude = " + pos.lng);
+      map.setCenter(pos);
+    }, function() {
+      handleLocationError(true, infoWindow, map.getCenter());
+    });
+  } else {
+    // Browser doesn't support Geolocation
+    handleLocationError(false, infoWindow, map.getCenter());
+  }
+}
+
+function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+  infoWindow.setPosition(pos);
+  infoWindow.setContent(browserHasGeolocation ?
+                        'Error: The Geolocation service failed.' :
+                        'Error: Your browser doesn\'t support geolocation.');
+}
+    </script>
+-->	
+<!--
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDNT3S4ih2sFQ6Jz82-iEQHowbpBAyGWpg&signed_in=true&callback=initMap"
+        async defer>
+    </script>
+-->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDNT3S4ih2sFQ6Jz82-iEQHowbpBAyGWpg&signed_in=true"
+        async defer>
+    </script>
+  </body>
+</html>
